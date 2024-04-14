@@ -750,3 +750,127 @@ export default Countdown;
 
 > - We adjust the time units to ensure they do not exceed 60.
 > - We update the state with the adjusted time.
+
+## Jesus's prompts 🙎🏻
+
+> add other 2 buttons to the countdown component, start that will countdown based on the time value we have in countdownTime, when we click start we will block the rest of the numeric buttons avoiding to add any more values to countdownTime. We will show the time going down until we reach 0.
+> the other button will be clear that will reset the countdownTime variable to 00:00:00 and will enable again the numeric buttons allowing to keep adding time values to countdownTime
+
+## Chat GPT Response 🤖
+
+> Sure, let's add the "Start" and "Clear" buttons to the Countdown component. When the "Start" button is clicked, it will start the countdown based on the time value we have in countdownTime, and the numeric buttons will be disabled. The "Clear" button will reset the countdownTime variable to "00:00:00" and enable the numeric buttons. Here's the updated implementation:
+
+```sh
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+const Countdown = () => {
+  const [countdownTime, setCountdownTime] = useState("00:00:00");
+  const [isRunning, setIsRunning] = useState(false);
+
+  const handleNumberClick = (num) => {
+    if (!isRunning) {
+      let newTime = countdownTime.replace(/:/g, "");
+      newTime += num;
+      newTime = newTime.slice(-6); // Take the last 6 characters to ensure the format
+      const hours = parseInt(newTime.slice(0, 2), 10);
+      const minutes = parseInt(newTime.slice(2, 4), 10);
+      const seconds = parseInt(newTime.slice(4), 10);
+      let adjustedSeconds = seconds;
+      let adjustedMinutes = minutes;
+      let adjustedHours = hours;
+      if (adjustedSeconds >= 60) {
+        adjustedMinutes += Math.floor(adjustedSeconds / 60);
+        adjustedSeconds %= 60;
+      }
+      if (adjustedMinutes >= 60) {
+        adjustedHours += Math.floor(adjustedMinutes / 60);
+        adjustedMinutes %= 60;
+      }
+      adjustedSeconds = adjustedSeconds.toString().padStart(2, "0");
+      adjustedMinutes = adjustedMinutes.toString().padStart(2, "0");
+      adjustedHours = adjustedHours.toString().padStart(2, "0");
+      setCountdownTime(
+        `${adjustedHours}:${adjustedMinutes}:${adjustedSeconds}`
+      );
+    }
+  };
+
+  useEffect(() => {
+    let timer;
+    if (isRunning) {
+      timer = setInterval(() => {
+        setCountdownTime((prevTime) => {
+          const [hours, minutes, seconds] = prevTime.split(":").map(Number);
+          if (hours === 0 && minutes === 0 && seconds === 0) {
+            clearInterval(timer);
+            setIsRunning(false);
+            return prevTime;
+          }
+          let totalSeconds = hours * 3600 + minutes * 60 + seconds - 1;
+          const newHours = Math.floor(totalSeconds / 3600);
+          totalSeconds %= 3600;
+          const newMinutes = Math.floor(totalSeconds / 60);
+          const newSeconds = totalSeconds % 60;
+          return `${String(newHours).padStart(2, "0")}:${String(
+            newMinutes
+          ).padStart(2, "0")}:${String(newSeconds).padStart(2, "0")}`;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isRunning]);
+
+  const startCountdown = () => {
+    setIsRunning(true);
+  };
+
+  const clearCountdown = () => {
+    setCountdownTime("00:00:00");
+    setIsRunning(false);
+  };
+
+  return (
+    <div className="d-flex flex-column align-items-center justify-content-center vh-100">
+      <div className="text-center mb-4">
+        <h1>{countdownTime}</h1>
+      </div>
+      <div className="d-flex flex-wrap justify-content-center mb-4">
+        {[...Array(10).keys()].map((num) => (
+          <button
+            key={num}
+            className="btn btn-primary m-2"
+            onClick={() => handleNumberClick(num)}
+            disabled={isRunning}
+          >
+            {num}
+          </button>
+        ))}
+      </div>
+      <div>
+        <button
+          className="btn btn-success m-2"
+          onClick={startCountdown}
+          disabled={isRunning}
+        >
+          Start
+        </button>
+        <button className="btn btn-danger m-2" onClick={clearCountdown}>
+          Clear
+        </button>
+        <Link to="/">
+          <button className="btn btn-primary m-2">Back</button>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default Countdown;
+```
+
+> In this implementation:
+
+> - The "Start" button starts the countdown based on the value of countdownTime and disables the numeric buttons.
+> - The "Clear" button resets the countdownTime variable to "00:00:00" and enables the numeric buttons.
